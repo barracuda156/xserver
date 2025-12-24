@@ -78,7 +78,11 @@ x_error_handler(Display *dpy, XErrorEvent *errevent)
 int
 xpbproxy_run(void)
 {
+#ifdef __clang__
     @autoreleasepool {
+#else
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
         size_t i;
 
         for (i = 0, xpbproxy_dpy = NULL; !xpbproxy_dpy && i < 5; i++) {
@@ -97,6 +101,9 @@ xpbproxy_run(void)
 
         if (xpbproxy_dpy == NULL) {
             ErrorF("xpbproxy: can't open default display\n");
+    #ifndef __clang__
+            [pool drain];
+    #endif
             return EXIT_FAILURE;
         }
 
@@ -106,6 +113,9 @@ xpbproxy_run(void)
         if (!XAppleWMQueryExtension(xpbproxy_dpy, &xpbproxy_apple_wm_event_base,
                                     &xpbproxy_apple_wm_error_base)) {
             ErrorF("xpbproxy: can't open AppleWM server extension\n");
+    #ifndef __clang__
+            [pool drain];
+    #endif
             return EXIT_FAILURE;
         }
 
@@ -117,10 +127,16 @@ xpbproxy_run(void)
         _selection_object = [x_selection new];
 
         if (!xpbproxy_input_register()) {
+    #ifndef __clang__
+            [pool drain];
+    #endif
             return EXIT_FAILURE;
         }
+#ifdef __clang__
     }
-
+#else
+    [pool drain];
+#endif
     CFRunLoopRun();
 
     return EXIT_SUCCESS;

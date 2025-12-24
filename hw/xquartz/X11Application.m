@@ -581,7 +581,11 @@ void
 X11ApplicationSetWindowMenu(int nitems, const char **items,
                             const char *shortcuts)
 {
+#ifdef __clang__
     @autoreleasepool {
+#else
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
         NSMutableArray<NSArray<NSString *> *> *allMenuItems =
             [[NSMutableArray alloc] init];
 
@@ -605,7 +609,11 @@ X11ApplicationSetWindowMenu(int nitems, const char **items,
         dispatch_async_f(dispatch_get_main_queue(),
                          allMenuItems,
                          setWindowMenuOnMain_fptr);
+#ifdef __clang__
     }
+#else
+    [pool drain];
+#endif
 }
 
 static void
@@ -686,12 +694,19 @@ appLaunchClient_fptr(void *string_ptr)
 void
 X11ApplicationLaunchClient(const char *cmd)
 {
+#ifdef __clang__
     @autoreleasepool {
+#else
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
         NSString *string_alloc = [[NSString alloc] initWithUTF8String:cmd];
         dispatch_async_f(dispatch_get_main_queue(), string_alloc, appLaunchClient_fptr);
+#ifdef __clang__
     }
+#else
+    [pool drain];
+#endif
 }
-
 
 
 /* helper function for X11ApplicationCanEnterRandR(),
@@ -722,7 +737,6 @@ runAlertPanel(void *result_ptr)
 Bool
 X11ApplicationCanEnterRandR(void)
 {
-    
     NSUserDefaults * const defaults = NSUserDefaults.xquartzDefaults;
 
     if ([defaults boolForKey:XQuartzPrefKeyNoRANDRAlert] ||
@@ -822,7 +836,11 @@ X11ApplicationMain(int argc, char **argv, char **envp)
     while (access("/tmp/x11-block", F_OK) == 0) sleep(1);
 #endif
 
+#ifdef __clang__
     @autoreleasepool {
+#else
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
         X11App = (X11Application *)[X11Application sharedApplication];
         [X11App read_defaults];
 
@@ -874,8 +892,11 @@ X11ApplicationMain(int argc, char **argv, char **envp)
         [[SUUpdater sharedUpdater] resetUpdateCycle];
         //    [[SUUpdater sharedUpdater] checkForUpdates:X11App];
 #endif
+#ifdef __clang__
     }
-
+#else
+    [pool drain];
+#endif
     [NSApp run];
     /* not reached */
 }

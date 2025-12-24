@@ -89,7 +89,12 @@ x_event_apple_wm_notify(XAppleWMNotifyEvent *e)
 static void
 xpbproxy_process_xevents(void)
 {
-    while (XPending(xpbproxy_dpy) != 0) { @autoreleasepool {
+    while (XPending(xpbproxy_dpy) != 0) {
+#ifdef __clang__
+    @autoreleasepool {
+#else
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
         XEvent e;
 
         XNextEvent(xpbproxy_dpy, &e);
@@ -127,7 +132,12 @@ xpbproxy_process_xevents(void)
         }
 
         XFlush(xpbproxy_dpy);
-    }}
+#ifdef __clang__
+        }
+#else
+        [pool drain];
+#endif
+    }
 }
 
 static BOOL
