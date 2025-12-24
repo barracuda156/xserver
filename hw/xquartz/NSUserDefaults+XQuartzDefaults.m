@@ -47,12 +47,14 @@ static void
 globalDefaultsOnce(void *arg)
 {
     NSUserDefaults **defaults = arg;
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
     NSString * const defaultsDomain = @".GlobalPreferences";
     *defaults = [[[NSUserDefaults alloc] initWithSuiteName:defaultsDomain] retain];
-
-    NSDictionary<NSString *, id> * const defaultDefaultsDict = @{
-        @"AppleSpacesSwitchOnActivate" : @(YES),
-    };
+#else
+    *defaults = [[NSUserDefaults standardUserDefaults] retain];
+#endif
+    NSMutableDictionary *defaultDefaultsDict = [[NSMutableDictionary alloc] init];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES] forKey:@"AppleSpacesSwitchOnActivate"];
 
     [*defaults registerDefaults:defaultDefaultsDict];
 }
@@ -61,12 +63,14 @@ static void
 dockDefaultsOnce(void *arg)
 {
     NSUserDefaults **defaults = arg;
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
     NSString * const defaultsDomain = @"com.apple.dock";
     *defaults = [[[NSUserDefaults alloc] initWithSuiteName:defaultsDomain] retain];
-
-    NSDictionary<NSString *, id> * const defaultDefaultsDict = @{
-        @"workspaces" : @(NO),
-    };
+#else
+    *defaults = [[NSUserDefaults standardUserDefaults] retain];
+#endif
+    NSMutableDictionary *defaultDefaultsDict = [[NSMutableDictionary alloc] init];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO] forKey:@"workspaces"];
 
     [*defaults registerDefaults:defaultDefaultsDict];
 }
@@ -75,61 +79,63 @@ static void
 xquartzDefaultsOnce(void *arg)
 {
     NSUserDefaults **defaults = (NSUserDefaults **)arg;
-    NSString *const defaultsDomain = @(BUNDLE_ID_PREFIX ".X11");
-    NSString *const defaultDefaultsDomain = NSBundle.mainBundle.bundleIdentifier;
+
+    NSString *defaultsDomain = [NSString stringWithFormat:@"%s.X11", BUNDLE_ID_PREFIX];
+    NSString *defaultDefaultsDomain = [[NSBundle mainBundle] bundleIdentifier];
 
     if ([defaultsDomain isEqualToString:defaultDefaultsDomain]) {
-        *defaults = [NSUserDefaults.standardUserDefaults retain];
+        *defaults = [[NSUserDefaults standardUserDefaults] retain];
     } else {
-        *defaults = [[[NSUserDefaults alloc] initWithSuiteName:defaultsDomain] retain];
+        *defaults = [[NSUserDefaults standardUserDefaults] retain];
     }
 
     NSString *defaultWindowItemModifiers = @"command";
-    NSString * const defaultWindowItemModifiersLocalized =
+    NSString *defaultWindowItemModifiersLocalized =
         NSLocalizedString(@"window item modifiers", @"window item modifiers");
 
     if (![defaultWindowItemModifiersLocalized isEqualToString:@"window item modifiers"]) {
         defaultWindowItemModifiers = defaultWindowItemModifiersLocalized;
     }
 
-    NSDictionary<NSString *, id> * const defaultDefaultsDict = @{
-        XQuartzPrefKeyFakeButtons : @(NO),
-        /* XQuartzPrefKeyFakeButton2 nil default */
-        /* XQuartzPrefKeyFakeButton3 nil default */
-        XQuartzPrefKeyKeyEquivs : @(YES),
-        XQuartzPrefKeyFullscreenHotkeys : @(NO),
-        XQuartzPrefKeyFullscreenMenu : @(NO),
-        XQuartzPrefKeySyncKeymap : @(NO),
-        XQuartzPrefKeyDepth : @(-1),
-        XQuartzPrefKeyNoAuth : @(NO),
-        XQuartzPrefKeyNoTCP : @(NO),
-        XQuartzPrefKeyDoneXinitCheck : @(NO),
-        XQuartzPrefKeyNoQuitAlert : @(NO),
-        XQuartzPrefKeyNoRANDRAlert : @(NO),
-        XQuartzPrefKeyOptionSendsAlt : @(NO),
-        /* XQuartzPrefKeyAppKitModifiers nil default */
-        XQuartzPrefKeyWindowItemModifiers : defaultWindowItemModifiers,
-        XQuartzPrefKeyRootless : @(YES),
-        XQuartzPrefKeyRENDERExtension : @(YES),
-        XQuartzPrefKeyTESTExtension : @(NO),
-        XQuartzPrefKeyLoginShell : @"/bin/sh",
-        XQuartzPrefKeyClickThrough : @(NO),
-        XQuartzPrefKeyFocusFollowsMouse : @(NO),
-        XQuartzPrefKeyFocusOnNewWindow : @(YES),
-
-        XQuartzPrefKeyScrollInDeviceDirection : @(NO),
-        XQuartzPrefKeySyncPasteboard : @(YES),
-        XQuartzPrefKeySyncPasteboardToClipboard : @(YES),
-        XQuartzPrefKeySyncPasteboardToPrimary : @(YES),
-        XQuartzPrefKeySyncClipboardToPasteBoard : @(YES),
-        XQuartzPrefKeySyncPrimaryOnSelect : @(NO),
-    };
+    NSMutableDictionary *defaultDefaultsDict = [[NSMutableDictionary alloc] init];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyFakeButtons];
+    // XQuartzPrefKeyFakeButton2 and 3 left as nil (no setObject)
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeyKeyEquivs];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyFullscreenHotkeys];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyFullscreenMenu];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeySyncKeymap];
+    [defaultDefaultsDict setObject:[NSNumber numberWithInt:-1]    forKey:XQuartzPrefKeyDepth];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyNoAuth];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyNoTCP];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyDoneXinitCheck];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyNoQuitAlert];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyNoRANDRAlert];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyOptionSendsAlt];
+    // XQuartzPrefKeyAppKitModifiers is nil
+    [defaultDefaultsDict setObject:defaultWindowItemModifiers     forKey:XQuartzPrefKeyWindowItemModifiers];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeyRootless];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeyRENDERExtension];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyTESTExtension];
+    [defaultDefaultsDict setObject:@"/bin/sh"                     forKey:XQuartzPrefKeyLoginShell];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyClickThrough];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyFocusFollowsMouse];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeyFocusOnNewWindow];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeyScrollInDeviceDirection];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeySyncPasteboard];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeySyncPasteboardToClipboard];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeySyncPasteboardToPrimary];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:YES]  forKey:XQuartzPrefKeySyncClipboardToPasteBoard];
+    [defaultDefaultsDict setObject:[NSNumber numberWithBool:NO]   forKey:XQuartzPrefKeySyncPrimaryOnSelect];
 
     [*defaults registerDefaults:defaultDefaultsDict];
+    [defaultDefaultsDict release];
 
-    NSString * const systemDefaultsPlistPath = [@(XQUARTZ_DATA_DIR) stringByAppendingPathComponent:@"defaults.plist"];
-    NSDictionary<NSString *, id> * const systemDefaultsDict = [NSDictionary dictionaryWithContentsOfFile:systemDefaultsPlistPath];
-    [*defaults registerDefaults:systemDefaultsDict];
+    NSString *systemDefaultsPlistPath =
+        [[NSString stringWithUTF8String:XQUARTZ_DATA_DIR] stringByAppendingPathComponent:@"defaults.plist"];
+    NSDictionary *systemDefaultsDict = [NSDictionary dictionaryWithContentsOfFile:systemDefaultsPlistPath];
+    if (systemDefaultsDict) {
+        [*defaults registerDefaults:systemDefaultsDict];
+    }
 }
 
 @implementation NSUserDefaults (XQuartzDefaults)

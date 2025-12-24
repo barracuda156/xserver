@@ -159,7 +159,17 @@ X11Application *X11App;
 @property (nonatomic, readwrite, assign) OSX_BOOL x_active;
 @end
 
+@interface X11Application : NSApplication
+{
+    OSX_BOOL x_active;
+    id controller;
+}
+@end
+
 @implementation X11Application
+
+@synthesize x_active;
+@synthesize controller;
 
 typedef struct message_struct message;
 struct message_struct {
@@ -346,7 +356,7 @@ sendX11NSEvent_fptr(void *e_ptr)
     case NSKeyDown:
     case NSKeyUp:
 
-        if (_x_active) {
+        if (self.x_active) {
             static BOOL do_swallow = NO;
             static int swallow_keycode;
 
@@ -415,7 +425,7 @@ sendX11NSEvent_fptr(void *e_ptr)
 
     case NSFlagsChanged:
         /* Don't tell X11 about modifiers changing while it's not active */
-        if (!_x_active)
+        if (!self.x_active)
             for_x = NO;
         break;
 
@@ -439,9 +449,9 @@ sendX11NSEvent_fptr(void *e_ptr)
                 [self set_front_process:nil];
 
                 /* Get the Spaces preference for SwitchOnActivate */
-                BOOL const workspaces = [NSUserDefaults.dockDefaults boolForKey:@"workspaces"];
+                BOOL const workspaces = [[NSUserDefaults dockDefaults] boolForKey:@"workspaces"];
                 if (workspaces) {
-                    order_all_windows = [NSUserDefaults.globalDefaults boolForKey:@"AppleSpacesSwitchOnActivate"];
+                    order_all_windows = [[NSUserDefaults globalDefaults] boolForKey:@"AppleSpacesSwitchOnActivate"];
                 }
 
                 /* TODO: In the workspaces && !AppleSpacesSwitchOnActivate case, the windows are ordered
@@ -464,8 +474,8 @@ sendX11NSEvent_fptr(void *e_ptr)
         case NSApplicationDeactivatedEventType:
             for_x = NO;
 
-            x_was_active = _x_active;
-            if (_x_active)
+            x_was_active = self.x_active;
+            if (self.x_active)
                 [self activateX:NO];
             break;
         }
@@ -583,18 +593,26 @@ X11ApplicationSetWindowMenu(int nitems, const char **items,
 {
 #ifdef __clang__
     @autoreleasepool {
+        NSMutableArray<NSArray<NSString *> *> *allMenuItems =
 #else
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+        NSMutableArray *allMenuItems =
 #endif
-        NSMutableArray<NSArray<NSString *> *> *allMenuItems =
             [[NSMutableArray alloc] init];
 
         for (int i = 0; i < nitems; i++) {
+#ifdef __clang__
             NSMutableArray<NSString *> *menuItem =
+#else
+            NSMutableArray *menuItem =
+#endif
                 [[NSMutableArray alloc] init];
 
+#ifdef __clang__
             [menuItem addObject:@(items[i])];
-
+#else
+            [menuItem addObject:[NSString stringWithUTF8String:items[i]]];
+#endif
             if (shortcuts[i] == 0) {
                 [menuItem addObject:@""];
             } else {
@@ -845,7 +863,7 @@ X11ApplicationMain(int argc, char **argv, char **envp)
         [X11App read_defaults];
 
         [NSBundle loadNibNamed:@"main" owner:NSApp];
-        [NSNotificationCenter.defaultCenter addObserver:NSApp
+        [[NSNotificationCenter defaultCenter] addObserver:NSApp
                                                selector:@selector (became_key:)
                                                    name:NSWindowDidBecomeKeyNotification
                                                  object:nil];
@@ -857,9 +875,9 @@ X11ApplicationMain(int argc, char **argv, char **envp)
         QuartzModeBundleInit();
 
         /* Calculate the height of the menubar so we can avoid it. */
-        aquaMenuBarHeight = NSApp.mainMenu.menuBarHeight;
+        aquaMenuBarHeight = [[NSApp mainMenu] menuBarHeight];
         if (!aquaMenuBarHeight) {
-            NSScreen* primaryScreen = NSScreen.screens[0];
+            NSScreen* primaryScreen = [[NSScreen screens] objectAtIndex:0];
             aquaMenuBarHeight = NSHeight(primaryScreen.frame) - NSMaxY(primaryScreen.visibleFrame);
         }
 
