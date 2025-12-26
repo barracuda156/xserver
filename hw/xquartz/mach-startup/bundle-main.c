@@ -524,8 +524,10 @@ setup_console_redirect(const char *bundle_id)
 
     asl_set_filter(aslc, ASL_FILTER_MASK_UPTO(ASL_LEVEL_WARNING));
 
+#if defined(ASL_LOG_DESCRIPTOR_READ)
     asl_log_descriptor(aslc, NULL, ASL_LEVEL_INFO, STDOUT_FILENO, ASL_LOG_DESCRIPTOR_WRITE);
     asl_log_descriptor(aslc, NULL, ASL_LEVEL_NOTICE, STDERR_FILENO, ASL_LOG_DESCRIPTOR_WRITE);
+#endif
 }
 
 static void
