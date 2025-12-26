@@ -37,10 +37,12 @@
 
 #import "X11Controller.h"
 
-@interface X11Application : NSApplication
-
-@property (nonatomic, readwrite, strong) X11Controller *controller;
-@property (nonatomic, readonly, assign) OSX_BOOL x_active;
+@interface X11Application : NSApplication {
+    OSX_BOOL x_active;
+    X11Controller *controller;
+}
+@property (nonatomic, readwrite, retain) X11Controller *controller;
+@property (nonatomic, readwrite, assign) OSX_BOOL x_active;
 
 @end
 

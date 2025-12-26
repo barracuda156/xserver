@@ -155,17 +155,6 @@ X11Application *X11App;
 - (void) sendX11NSEvent:(NSEvent *)e;
 @end
 
-@interface X11Application ()
-@property (nonatomic, readwrite, assign) OSX_BOOL x_active;
-@end
-
-@interface X11Application : NSApplication
-{
-    OSX_BOOL x_active;
-    id controller;
-}
-@end
-
 @implementation X11Application
 
 @synthesize x_active;

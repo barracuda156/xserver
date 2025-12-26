@@ -50,7 +50,10 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+// Unused otherwise, see below.
+#if XPLUGIN_VERSION >= 6
 #include <dispatch/dispatch.h>
+#endif
 
 #include "rootlessWindow.h"
 #include "xprEvent.h"
@@ -59,7 +62,9 @@ static void
 bringAllToFront(void *unused)
 {
     (void) unused; /* to silence the compiler warning */
+#if XPLUGIN_VERSION >= 6
     xp_window_bring_all_to_front();
+#endif
 }
 
 Bool
@@ -79,10 +84,13 @@ QuartzModeEventHandler(int screenNum, XQuartzEvent *e, DeviceIntPtr dev)
 
     case kXquartzBringAllToFront:
         DEBUG_LOG("kXquartzBringAllToFront\n");
+#if XPLUGIN_VERSION >= 6 // No xp_window_bring_all_to_front before that.
         dispatch_async_f(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                  NULL,
                  bringAllToFront);
-
+#else
+        RootlessOrderAllWindows(e->data[0]);
+#endif
         return TRUE;
 
     default:

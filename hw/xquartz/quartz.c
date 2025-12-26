@@ -69,10 +69,6 @@
 #include <signal.h>
 #include <AvailabilityMacros.h>
 
-#ifndef __clang__
-#include <Foundation/Foundation.h>
-#endif
-
 #include <rootlessCommon.h>
 #include <Xplugin.h>
 
@@ -82,7 +78,7 @@
 // in the OS without major bincompat ramifications.
 //
 // These were added in macOS 10.7.
-#ifdef __clang__ && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1070)
+#if defined(__clang__) && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1070)
 void * _Nonnull objc_autoreleasePoolPush(void);
 void objc_autoreleasePoolPop(void * _Nonnull context);
 #endif
@@ -167,20 +163,13 @@ QuartzSetupScreen(int index,
 static void
 QuartzBlockHandler(void *blockData, void *pTimeout)
 {
-#ifdef __clang__ && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1070)
+#if defined(__clang__) && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1070)
     static void *poolToken = NULL;
 
     if (poolToken) {
         objc_autoreleasePoolPop(poolToken);
     }
     poolToken = objc_autoreleasePoolPush();
-#else
-    static NSAutoreleasePool *pool = nil;
-
-    if (pool) {
-        [pool drain];
-    }
-    pool = [[NSAutoreleasePool alloc] init];
 #endif
 }
 
