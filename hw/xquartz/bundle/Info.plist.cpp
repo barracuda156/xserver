@@ -26,8 +26,6 @@
 		<string>x11a</string>
 	<key>CSResourcesFileMapped</key>
 		<true/>
-	<key>NSSupportsAutomaticGraphicsSwitching</key>
-		<true/>
 
 	<!-- Add generic usage descriptions for TCC
 	     https://github.com/XQuartz/XQuartz/issues/245
